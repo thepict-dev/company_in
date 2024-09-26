@@ -11,9 +11,17 @@
     </c:import>
     <body>
         <%@include file="./include/header.jsp" %>
-	    <main>
-	        <div class="mainInner">
-	            <ul class="projectLists">
+	    <div class="subContainer pro">
+	        <ul class="tabNav">
+	            <li class="active"><a href="#lnk">All</a></li>
+	            <li><a href="#lnk">commercial</a></li>
+	            <li><a href="#lnk">school</a></li>
+	            <li><a href="#lnk">residence</a></li>
+	            <li><a href="#lnk">government</a></li>
+	            <li><a href="#lnk">ETC</a></li>
+	        </ul>
+	        <div class="tabContents">
+	            <ul class="projectLists pro">
 	                <li>
 	                    <a href="/project_view.do">
 	                        <span><img src="/user_img/project-test.png" alt=""></span>
@@ -22,7 +30,7 @@
 	                </li>
 	            </ul>
 	        </div>
-	    </main>
+	    </div>
         <%@include file="./include/footer.jsp" %>
     </body>
 </html>
