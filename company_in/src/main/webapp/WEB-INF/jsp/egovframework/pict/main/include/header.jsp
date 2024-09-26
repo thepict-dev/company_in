@@ -3,14 +3,25 @@
 <%@ taglib prefix="form"   uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="ui"     uri="http://egovframework.gov/ctl/ui"%>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+
+<%
+	String url = request.getRequestURL().toString();
+	pageContext.setAttribute("url", url);
+	
+%>
+
+<c:set var="about" value="${fn:indexOf(url, 'about')}"/>
+<c:set var="project" value="${fn:indexOf(url, 'project')}"/>
+<c:set var="partners" value="${fn:indexOf(url, 'partners')}"/>
 
 <header>
     <div class="headerInner">
         <h1><a href="/"><img src="/user_img/logo.png" alt=""></a></h1>
         <ul class="nav">
-            <li><a href="/about.do">About</a></li>
-            <li><a href="/project.do">Project</a></li>
-            <li><a href="/partners.do">Partners</a></li>
+            <li <c:if test="${about ne -1}">class="active"</c:if>><a href="/about.do">About</a></li>
+            <li <c:if test="${project ne -1}">class="active"</c:if>><a href="/project.do">Project</a></li>
+            <li <c:if test="${partners ne -1}">class="active"</c:if>><a href="/partners.do">Partners</a></li>
             <li><a href="#lnk" target="_blank" title="새창이동">@in_i.d</a></li>
         </ul>
         <button type="button" class="mb">

@@ -43,6 +43,9 @@ header.active{
     letter-spacing: -0.36px;
     transition: all .2s;
 }
+.nav li.active a{
+    font-weight: 900;
+}
 .nav li:hover a{
     color: rgba(0, 0, 0, 0.5);
 }
