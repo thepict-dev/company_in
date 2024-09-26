@@ -14,12 +14,19 @@
 	    <main>
 	        <div class="mainInner">
 	            <ul class="projectLists">
-	                <li>
-	                    <a href="/project_view.do">
-	                        <span><img src="/user_img/project-test.png" alt=""></span>
-	                        <p>프로젝트명이 이곳에 들어갑니다</p>
-	                    </a>
-	                </li>
+	            	<c:forEach var="board_list" items="${board_list}" varStatus="status">
+		                <li>
+		                    <a href="/project_view.do?idx=${board_list.idx}">
+		                        <span>
+		                        	<!-- 
+		                        	<img src="/user_img/project-test.png" alt="">
+		                        	 -->
+		                        	 <img src="${board_list.img_url1}" alt="대표이미지">
+	                        	</span>
+		                        <p>${board_list.title}</p>
+		                    </a>
+		                </li>
+	                </c:forEach>
 	            </ul>
 	        </div>
 	    </main>

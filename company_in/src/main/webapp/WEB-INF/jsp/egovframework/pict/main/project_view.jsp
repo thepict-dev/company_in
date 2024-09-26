@@ -13,36 +13,46 @@
         <%@include file="./include/header.jsp" %>
 	    <div class="subContainer view">
 	        <ul class="imgsContainer">
-	            <li><img src="/user_img/test1.png" alt=""></li>
-	            <li><img src="/user_img/test2.png" alt=""></li>
-	            <li><img src="/user_img/test3.png" alt=""></li>
-	            <li><img src="/user_img/test4.png" alt=""></li>
-	            <li><img src="/user_img/test5.png" alt=""></li>
+	        	<c:if test="${pictVO.img_url1 ne null && pictVO.img_url1 ne undefined && pictVO.img_url1 ne ''}">
+	            	<li><img src="${pictVO.img_url1}" alt=""></li>
+            	</c:if>
+            	<c:if test="${pictVO.img_url2 ne null && pictVO.img_url2 ne undefined && pictVO.img_url2 ne ''}">
+	            	<li><img src="${pictVO.img_url2}" alt=""></li>
+            	</c:if>
+            	<c:if test="${pictVO.img_url3 ne null && pictVO.img_url3 ne undefined && pictVO.img_url3 ne ''}">
+	            	<li><img src="${pictVO.img_url3}" alt=""></li>
+            	</c:if>
+            	<c:if test="${pictVO.img_url4 ne null && pictVO.img_url4 ne undefined && pictVO.img_url4 ne ''}">
+	            	<li><img src="${pictVO.img_url4}" alt=""></li>
+            	</c:if>
+            	<c:if test="${pictVO.img_url5 ne null && pictVO.img_url5 ne undefined && pictVO.img_url5 ne ''}">
+	            	<li><img src="${pictVO.img_url5}" alt=""></li>
+            	</c:if>
 	        </ul>
 	        <div class="textsContainer">
 	            <div class="textsTitles">
-	                <p class="category">Commercial</p>
+	                <p class="category">${pictVO.category}</p>
 	                <div class="titles">
-	                    <h2>프로젝트명이 이곳에 들어갑니다</h2>
+	                    <h2>${pictVO.title}</h2>
 	                    <button type="button" id="shareLink"><img src="/user_img/share.png" alt=""></button>
 	                </div>
 	            </div>
 	            <ul class="infos">
 	                <li>
 	                    <span>Area</span>
-	                    <p>136M² (41PY)</p>
+	                    <p>${pictVO.area}</p>
 	                </li>
 	                <li>
 	                    <span>Type</span>
-	                    <p>상업공간</p>
+	                    <p>${pictVO.type }</p>
 	                </li>
 	                <li>
 	                    <span>Address</span>
-	                    <p>Chuncheon</p>
+	                    <p>${pictVO.address}</p>
 	                </li>
 	            </ul>
 	            <p class="infoDesc">
-	                주식회사인은 최근 서울 성수동에 위치한 유명 카페, '그린브리즈'의 리노베이션 프로젝트를 성공적으로 완료했습니다. 그린브리즈는 도시의 번잡함 속에서 자연과 조화를 이루는 힐링 공간으로 자리잡고자 했으며, 우리는 이 목표를 실현하기 위해 기존 공간을 완전히 새롭게 탈바꿈시켰습니다. 이번 프로젝트는 자연 친화적 요소를 최대한 활용해 도시 속에서도 자연을 느낄 수 있는 공간을 조성하는 데 초점을 맞췄습니다.
+	                ${pictVO.text}
 	            </p>
 	        </div>
 	    </div>

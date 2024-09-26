@@ -13,21 +13,26 @@
         <%@include file="./include/header.jsp" %>
 	    <div class="subContainer pro">
 	        <ul class="tabNav">
-	            <li class="active"><a href="#lnk">All</a></li>
-	            <li><a href="#lnk">commercial</a></li>
-	            <li><a href="#lnk">school</a></li>
-	            <li><a href="#lnk">residence</a></li>
-	            <li><a href="#lnk">government</a></li>
-	            <li><a href="#lnk">ETC</a></li>
+	        <!-- class="active" -->
+	            <li class="<c:if test="${pictVO.category eq '' || pictVO.category eq null || pictVO.category eq undefined}">active</c:if>"><a href="/project.do">All</a></li>
+	            <li class="<c:if test="${pictVO.category eq 'commercial'}">active</c:if>"><a href="/project.do?category=commercial">commercial</a></li>
+	            <li class="<c:if test="${pictVO.category eq 'school'}">active</c:if>"><a href="/project.do?category=school">school</a></li>
+	            <li class="<c:if test="${pictVO.category eq 'residence'}">active</c:if>"><a href="/project.do?category=residence">residence</a></li>
+	            <li class="<c:if test="${pictVO.category eq 'government'}">active</c:if>"><a href="/project.do?category=government">government</a></li>
+	            <li class="<c:if test="${pictVO.category eq 'etc'}">active</c:if>"><a href="/project.do?category=etc">ETC</a></li>
 	        </ul>
 	        <div class="tabContents">
 	            <ul class="projectLists pro">
-	                <li>
-	                    <a href="/project_view.do">
-	                        <span><img src="/user_img/project-test.png" alt=""></span>
-	                        <p>프로젝트명이 이곳에 들어갑니다</p>
-	                    </a>
-	                </li>
+	            	<c:forEach var="board_list" items="${board_list}" varStatus="status">
+		                <li>
+		                    <a href="/project_view.do?idx=${board_list.idx}">
+		                        <span>
+		                        	 <img src="${board_list.img_url1}" alt="대표이미지">
+	                        	</span>
+		                        <p>${board_list.title}</p>
+		                    </a>
+		                </li>
+	                </c:forEach>
 	            </ul>
 	        </div>
 	    </div>

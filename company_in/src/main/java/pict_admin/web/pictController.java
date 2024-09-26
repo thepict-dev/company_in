@@ -69,13 +69,14 @@ public class pictController {
 	public String project(@ModelAttribute("searchVO") PictVO pictVO, HttpServletRequest request, ModelMap model, HttpSession session, RedirectAttributes rttr) throws Exception {
 		List<?> board_list = pictService.project_list(pictVO);
 		model.addAttribute("board_list", board_list);
-		
+		model.addAttribute("pictVO", pictVO);
 		return "pict/main/project";
 	}
 	
 	@RequestMapping(value = "/project_view.do")
 	public String project_view(@ModelAttribute("searchVO") PictVO pictVO, HttpServletRequest request, ModelMap model, HttpSession session, RedirectAttributes rttr) throws Exception {
 		pictVO = pictService.project_list_one(pictVO);
+		model.addAttribute("pictVO", pictVO);
 		return "pict/main/project_view";
 	}
 
