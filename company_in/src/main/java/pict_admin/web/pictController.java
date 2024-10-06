@@ -2,8 +2,12 @@ package pict_admin.web;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 
 import java.net.URL;
@@ -30,7 +34,9 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -101,7 +107,7 @@ public class pictController {
 				model.addAttribute("adminVO", adminVO);
 			}
 		
-			return "redirect:/admin/user_list.do";
+			return "redirect:/admin/project_list.do";
 		
 		}
 	}
@@ -115,7 +121,7 @@ public class pictController {
 		}
 		else {
 			//나중에 여기 계정별로 리다이렉트 분기처리
-			return "redirect:/admin/user_list.do";
+			return "redirect:/admin/project_list.do";
 			
 		}
 			
@@ -298,29 +304,45 @@ public class pictController {
 		return "pict/main/message";
 	}
 	
-	@RequestMapping(value = "/admin/user_list.do")
+	@RequestMapping(value = "/admin/project_list.do")
 	public String user_list(@ModelAttribute("searchVO") PictVO pictVO, HttpServletRequest request, ModelMap model, HttpSession session, RedirectAttributes rttr) throws Exception {
-		String userAgent = request.getHeader("user-agent");
-		boolean mobile1 = userAgent.matches( ".*(iPhone|iPod|Android|Windows CE|BlackBerry|Symbian|Windows Phone|webOS|Opera Mini|Opera Mobi|POLARIS|IEMobile|lgtelecom|nokia|SonyEricsson).*");
-		boolean mobile2 = userAgent.matches(".*(LG|SAMSUNG|Samsung).*"); 
-		if (mobile1 || mobile2) {
-		    //여기 모바일일 경우
-			model.addAttribute("intype", "mobile");
-		}
-		else {
-			model.addAttribute("intype", "pc");
-		}
-		List<?> board_list = pictService.user_list(pictVO);
+		int limitNumber = 20;
+        pictVO.setLimit(limitNumber);
+        Integer pageNum = Integer.valueOf(pictVO.getPageNumber());
+        if (pageNum.intValue() == 0) {
+          pictVO.setPageNumber(1);
+          pageNum = Integer.valueOf(1);
+        } 
+        int startNum = (pageNum.intValue() - 1) * limitNumber;
+        pictVO.setStartNumber(startNum);
+        Integer totalCnt = this.pictService.project_list_cnt(pictVO);
+        int lastPageValue = (int)Math.ceil(totalCnt.intValue() * 1.0D / 20.0D);
+        pictVO.setLastPage(lastPageValue);
+        Integer s_page = Integer.valueOf(pageNum.intValue() - 4);
+        Integer e_page = Integer.valueOf(pageNum.intValue() + 5);
+        if (s_page.intValue() <= 0) {
+          s_page = Integer.valueOf(1);
+          e_page = Integer.valueOf(10);
+        } 
+        if (e_page.intValue() > lastPageValue)
+          e_page = Integer.valueOf(lastPageValue); 
+        pictVO.setStartPage(s_page.intValue());
+        pictVO.setEndPage(e_page.intValue());
+        model.addAttribute("pictVO", pictVO);
+        model.addAttribute("board_cnt", totalCnt);
+		
+		
+		List<?> board_list = pictService.project_list(pictVO);
 		model.addAttribute("resultList", board_list);
 		model.addAttribute("pictVO", pictVO);
 		
-		return "pict/admin/user_list";
+		return "pict/admin/project_list";
 	}
-	@RequestMapping(value = "/admin/user_register.do")
-	public String user_register(@ModelAttribute("searchVO") PictVO pictVO, ModelMap model, HttpServletRequest request) throws Exception {
+	@RequestMapping(value = "/admin/project_register.do")
+	public String project_register(@ModelAttribute("searchVO") PictVO pictVO, ModelMap model, HttpServletRequest request) throws Exception {
 		if(pictVO.getIdx() != 0) {
 			//수정
-			pictVO = pictService.user_list_one(pictVO);
+			pictVO = pictService.project_list_one(pictVO);
 			pictVO.setSaveType("update");
 			
 		}
@@ -329,448 +351,160 @@ public class pictController {
 		}
 		
 		model.addAttribute("pictVO", pictVO);
-		return "pict/admin/user_register";
+		return "pict/admin/project_register";
 	}
-	@RequestMapping(value = "/admin/user_save.do", method = RequestMethod.POST)
-	public String user_save(@ModelAttribute("searchVO") PictVO pictVO, ModelMap model, MultipartHttpServletRequest request) throws Exception {
-		if(pictVO.getSaveType() != null && pictVO.getSaveType().equals("update")) {
-			
-			try {
-				URL url = new URL("https://api.fairpass.co.kr/fsApi/VisitorUpdate");
-				HttpURLConnection conn = (HttpURLConnection)url.openConnection();
-				
-				conn.setRequestMethod("POST"); // http 메서드
-				conn.setRequestProperty("Content-Type", "application/json"); // header Content-Type 정보
-				conn.setRequestProperty("ApiKey", " rioE2lpgWGInf2Gd7XF9cOCDvqXGUzKXYPrqBCW"); // header의 auth 정보
-				
-				conn.setDoInput(true); // 서버에 전달할 값이 있다면 true
-				conn.setDoOutput(true);// 서버에서 받을 값이 있다면 true
-				
-				JSONObject obj_param = new JSONObject();
-				obj_param.put("EVENT_IDX", "2417");	//행사코드 고정
-				obj_param.put("VISITOR_IDX", pictVO.getFairpath_id());
-				
-				String bus_info = "";
-				bus_info = pictVO.getBus() + "호차 " + pictVO.getSeat();
-				
-				String gender = "1";
-				if(pictVO.getBirthday_1().equals("2") || pictVO.getBirthday_1().equals("4")) gender = "2";
-				
-				obj_param.put("NAME", pictVO.getName());
-				obj_param.put("TEL", pictVO.getMobile());
-				obj_param.put("GENDER", gender);
-				obj_param.put("INFO9", bus_info);
-				obj_param.put("INFO10", pictVO.getBirthday());
-				obj_param.put("OPTION_IDX", "5019");
-
-				//서버에 데이터 전달
-				BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream()));
-				bw.write(obj_param.toString()); // 버퍼에 담기
-				bw.flush(); // 버퍼에 담긴 데이터 전달
-				bw.close();
-				
-				// 서버로부터 데이터 읽어오기
-				BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-				StringBuilder sb = new StringBuilder();
-				String line = null;
-				
-				while((line = br.readLine()) != null) { // 읽을 수 있을 때 까지 반복
-					sb.append(line);
-				}
-				JSONObject obj = new JSONObject(sb.toString()); // json으로 변경 (역직렬화)
-				int state_code = obj.getInt("resultCode");
-				System.out.println(obj);
-				if(state_code != 0) {
-					model.addAttribute("message", "저장 중 오류가 발생하였습니다.");
-					model.addAttribute("retType", ":location");
-					model.addAttribute("retUrl", "/admin/user_list.do");
-					return "pict/main/message";
-				}
-				else {
-					
-					pictService.user_update(pictVO);
-					model.addAttribute("message", "정상적으로 수정되었습니다.");
-					model.addAttribute("retType", ":location");
-					model.addAttribute("retUrl", "/admin/user_list.do");
-					return "pict/main/message";
-				}
-			}
-			catch(Exception e) {
-				System.out.println(e);
-				model.addAttribute("message", "저장 중 오류가 발생하였습니다.");
-				model.addAttribute("retType", ":location");
-				model.addAttribute("retUrl", "/admin/user_list.do");
-				return "pict/main/message";
-			}
-			
-			
-			
-		}
-		else {
-			try {
-				URL url = new URL("https://api.fairpass.co.kr/fsApi/VisitorInsert");
-				HttpURLConnection conn = (HttpURLConnection)url.openConnection();
-				
-				conn.setRequestMethod("POST"); // http 메서드
-				conn.setRequestProperty("Content-Type", "application/json"); // header Content-Type 정보
-				conn.setRequestProperty("ApiKey", " rioE2lpgWGInf2Gd7XF9cOCDvqXGUzKXYPrqBCW"); // header의 auth 정보
-				
-				conn.setDoInput(true); // 서버에 전달할 값이 있다면 true
-				conn.setDoOutput(true);// 서버에서 받을 값이 있다면 true
-				
-				JSONObject obj_param = new JSONObject();
-				obj_param.put("EVENT_IDX", "2417");	//행사코드 고정
-				
-				//String bus_info = "";
-				//bus_info = pictVO.getBus() + "호차 " + pictVO.getSeat();
-				
-				String gender = "1";
-				if(pictVO.getBirthday_1().equals("2") || pictVO.getBirthday_1().equals("4")) gender = "2";
-				obj_param.put("NAME", pictVO.getName());
-				obj_param.put("TEL", pictVO.getMobile());
-				obj_param.put("GENDER", gender);
-				//obj_param.put("INFO9", bus_info);
-				obj_param.put("INFO10", pictVO.getBirthday());
-				obj_param.put("OPTION_IDX", "5019");
-				
-				//서버에 데이터 전달
-				BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream()));
-				bw.write(obj_param.toString()); // 버퍼에 담기
-				bw.flush(); // 버퍼에 담긴 데이터 전달
-				bw.close();
-				
-				// 서버로부터 데이터 읽어오기
-				BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-				StringBuilder sb = new StringBuilder();
-				String line = null;
-				
-				while((line = br.readLine()) != null) { // 읽을 수 있을 때 까지 반복
-					sb.append(line);
-				}
-				JSONObject obj = new JSONObject(sb.toString()); // json으로 변경 (역직렬화)
-				int state_code = obj.getInt("resultCode");
-				System.out.println(obj);
-				if(state_code != 0) {
-					model.addAttribute("message", "저장 중 오류가 발생하였습니다.");
-					model.addAttribute("retType", ":location");
-					model.addAttribute("retUrl", "/admin/user_list.do");
-					return "pict/main/message";
-				}
-				else {
-					pictVO.setFairpath_id(obj.getInt("VISITOR_IDX")+"");
-					pictService.user_insert(pictVO);
-					model.addAttribute("message", "정상적으로 저장되었습니다.");
-					model.addAttribute("retType", ":location");
-					model.addAttribute("retUrl", "/admin/user_list.do");
-					return "pict/main/message";
-				}
-			}
-			catch(Exception e) {
-				System.out.println(e);
-				model.addAttribute("message", "저장 중 오류가 발생하였습니다.");
-				model.addAttribute("retType", ":location");
-				model.addAttribute("retUrl", "/admin/user_list.do");
-				return "pict/main/message";
-			}
-		}
+	@RequestMapping(value = "/admin/project_save.do", method = RequestMethod.POST)
+	public String project_save(@ModelAttribute("searchVO") PictVO pictVO, ModelMap model, MultipartHttpServletRequest request,
+			@RequestParam("attach_file1") MultipartFile attach_file1,
+			@RequestParam("attach_file2") MultipartFile attach_file2,
+			@RequestParam("attach_file3") MultipartFile attach_file3,
+			@RequestParam("attach_file4") MultipartFile attach_file4,
+			@RequestParam("attach_file5") MultipartFile attach_file5,
+			@RequestParam("attach_file6") MultipartFile attach_file6,
+			@RequestParam("attach_file7") MultipartFile attach_file7,
+			@RequestParam("attach_file8") MultipartFile attach_file8,
+			@RequestParam("attach_file9") MultipartFile attach_file9,
+			@RequestParam("attach_file10") MultipartFile attach_file10,
+			@RequestParam("attach_file11") MultipartFile attach_file11,
+			@RequestParam("attach_file12") MultipartFile attach_file12,
+			@RequestParam("attach_file13") MultipartFile attach_file13,
+			@RequestParam("attach_file14") MultipartFile attach_file14,
+			@RequestParam("attach_file15") MultipartFile attach_file15
+			) throws Exception {
 		
-	}
-	@RequestMapping(value = "/admin/user_delete.do")
-	public String user_delete(@ModelAttribute("searchVO") PictVO pictVO, ModelMap model, HttpServletRequest request) throws Exception {
-		try {
-			URL url = new URL("https://api.fairpass.co.kr/fsApi/VisitorDelete");
-			HttpURLConnection conn = (HttpURLConnection)url.openConnection();
-			
-			conn.setRequestMethod("POST"); // http 메서드
-			conn.setRequestProperty("Content-Type", "application/json"); // header Content-Type 정보
-			conn.setRequestProperty("ApiKey", " rioE2lpgWGInf2Gd7XF9cOCDvqXGUzKXYPrqBCW"); // header의 auth 정보
-			
-			conn.setDoInput(true); // 서버에 전달할 값이 있다면 true
-			conn.setDoOutput(true);// 서버에서 받을 값이 있다면 true
-			
-			JSONObject obj_param = new JSONObject();
-			obj_param.put("EVENT_IDX", "2417");	//행사코드 고정
-			obj_param.put("VISITOR_IDX", pictVO.getFairpath_id());
-
-			//서버에 데이터 전달
-			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream()));
-			bw.write(obj_param.toString()); // 버퍼에 담기
-			bw.flush(); // 버퍼에 담긴 데이터 전달
-			bw.close();
-			
-			// 서버로부터 데이터 읽어오기
-			BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-			StringBuilder sb = new StringBuilder();
-			String line = null;
-			
-			while((line = br.readLine()) != null) { // 읽을 수 있을 때 까지 반복
-				sb.append(line);
-			}
-			JSONObject obj = new JSONObject(sb.toString()); // json으로 변경 (역직렬화)
-			int state_code = obj.getInt("resultCode");
-			if(state_code != 0) {
-				model.addAttribute("message", "삭제 중 오류가 발생하였습니다.");
-				model.addAttribute("retType", ":location");
-				model.addAttribute("retUrl", "/user/user_list.do");
-				return "pict/main/message";
-			}
-			else {
-				pictService.user_delete(pictVO);
-				model.addAttribute("message", "정상적으로 삭제되었습니다.");
-				model.addAttribute("retType", ":location");
-				model.addAttribute("retUrl", "/admin/user_list.do");
-				return "pict/main/message";
-			}
+		if (attach_file1.getSize() != 0) {
+		    String uploadPath = fileUpload(request, attach_file1, (String) request.getSession().getAttribute("id"));
+		    String filepath = "/user1/upload_file/design/";
+		    String filename = uploadPath.split("#####")[1];
+		    pictVO.setImg_url1(filepath + filename);
 		}
-		catch(Exception e) {
-			System.out.println(e);
-			model.addAttribute("message", "삭제 중 오류가 발생하였습니다.");
+
+		if (attach_file2.getSize() != 0) {
+		    String uploadPath = fileUpload(request, attach_file2, (String) request.getSession().getAttribute("id"));
+		    String filepath = "/user1/upload_file/design/";
+		    String filename = uploadPath.split("#####")[1];
+		    pictVO.setImg_url2(filepath + filename);
+		}
+
+		if (attach_file3.getSize() != 0) {
+		    String uploadPath = fileUpload(request, attach_file3, (String) request.getSession().getAttribute("id"));
+		    String filepath = "/user1/upload_file/design/";
+		    String filename = uploadPath.split("#####")[1];
+		    pictVO.setImg_url3(filepath + filename);
+		}
+
+		if (attach_file4.getSize() != 0) {
+		    String uploadPath = fileUpload(request, attach_file4, (String) request.getSession().getAttribute("id"));
+		    String filepath = "/user1/upload_file/design/";
+		    String filename = uploadPath.split("#####")[1];
+		    pictVO.setImg_url4(filepath + filename);
+		}
+
+		if (attach_file5.getSize() != 0) {
+		    String uploadPath = fileUpload(request, attach_file5, (String) request.getSession().getAttribute("id"));
+		    String filepath = "/user1/upload_file/design/";
+		    String filename = uploadPath.split("#####")[1];
+		    pictVO.setImg_url5(filepath + filename);
+		}
+
+		if (attach_file6.getSize() != 0) {
+		    String uploadPath = fileUpload(request, attach_file6, (String) request.getSession().getAttribute("id"));
+		    String filepath = "/user1/upload_file/design/";
+		    String filename = uploadPath.split("#####")[1];
+		    pictVO.setImg_url6(filepath + filename);
+		}
+
+		if (attach_file7.getSize() != 0) {
+		    String uploadPath = fileUpload(request, attach_file7, (String) request.getSession().getAttribute("id"));
+		    String filepath = "/user1/upload_file/design/";
+		    String filename = uploadPath.split("#####")[1];
+		    pictVO.setImg_url7(filepath + filename);
+		}
+
+		if (attach_file8.getSize() != 0) {
+		    String uploadPath = fileUpload(request, attach_file8, (String) request.getSession().getAttribute("id"));
+		    String filepath = "/user1/upload_file/design/";
+		    String filename = uploadPath.split("#####")[1];
+		    pictVO.setImg_url8(filepath + filename);
+		}
+
+		if (attach_file9.getSize() != 0) {
+		    String uploadPath = fileUpload(request, attach_file9, (String) request.getSession().getAttribute("id"));
+		    String filepath = "/user1/upload_file/design/";
+		    String filename = uploadPath.split("#####")[1];
+		    pictVO.setImg_url9(filepath + filename);
+		}
+
+		if (attach_file10.getSize() != 0) {
+		    String uploadPath = fileUpload(request, attach_file10, (String) request.getSession().getAttribute("id"));
+		    String filepath = "/user1/upload_file/design/";
+		    String filename = uploadPath.split("#####")[1];
+		    pictVO.setImg_url10(filepath + filename);
+		}
+
+		if (attach_file11.getSize() != 0) {
+		    String uploadPath = fileUpload(request, attach_file11, (String) request.getSession().getAttribute("id"));
+		    String filepath = "/user1/upload_file/design/";
+		    String filename = uploadPath.split("#####")[1];
+		    pictVO.setImg_url11(filepath + filename);
+		}
+
+		if (attach_file12.getSize() != 0) {
+		    String uploadPath = fileUpload(request, attach_file12, (String) request.getSession().getAttribute("id"));
+		    String filepath = "/user1/upload_file/design/";
+		    String filename = uploadPath.split("#####")[1];
+		    pictVO.setImg_url12(filepath + filename);
+		}
+
+		if (attach_file13.getSize() != 0) {
+		    String uploadPath = fileUpload(request, attach_file13, (String) request.getSession().getAttribute("id"));
+		    String filepath = "/user1/upload_file/design/";
+		    String filename = uploadPath.split("#####")[1];
+		    pictVO.setImg_url13(filepath + filename);
+		}
+
+		if (attach_file14.getSize() != 0) {
+		    String uploadPath = fileUpload(request, attach_file14, (String) request.getSession().getAttribute("id"));
+		    String filepath = "/user1/upload_file/design/";
+		    String filename = uploadPath.split("#####")[1];
+		    pictVO.setImg_url14(filepath + filename);
+		}
+
+		if (attach_file15.getSize() != 0) {
+		    String uploadPath = fileUpload(request, attach_file15, (String) request.getSession().getAttribute("id"));
+		    String filepath = "/user1/upload_file/design/";
+		    String filename = uploadPath.split("#####")[1];
+		    pictVO.setImg_url15(filepath + filename);
+		}
+
+		
+		
+		if(pictVO.getSaveType() != null && pictVO.getSaveType().equals("update")) {
+			pictService.project_update(pictVO);
+			model.addAttribute("message", "정상적으로 수정되었습니다.");
 			model.addAttribute("retType", ":location");
-			model.addAttribute("retUrl", "/admin/user_list.do");
+			model.addAttribute("retUrl", "/admin/project_list.do");
 			return "pict/main/message";
 		}
-		
-	}
-
-	//사전등록 완료
-	@RequestMapping(value = "/register_save.do", method= RequestMethod.POST)
-	public String register_save(@ModelAttribute("searchVO") PictVO pictVO, ModelMap model, HttpServletRequest request, @RequestBody Map<String, Object> param) throws Exception {
-		try {
-			String name = param.get("name").toString();
-			String mobile = param.get("mobile").toString();
-			String sms_rand = param.get("sms_rand").toString();
-
-			String boarding = param.get("boarding").toString();
-			String location = param.get("location").toString();
-			
-			pictVO.setName(name);
-			pictVO.setMobile(mobile);
-			
-			pictVO = pictService.sms_select(pictVO);
-			
-			
-			if(pictVO.getSms_rand().equals(sms_rand)){
-				pictVO.setBoarding(boarding);
-				pictVO.setLocation(location);
-				pictService.sms_update(pictVO);
-				
-				String msg = "가보고 싶은 두타연 : 금강산 가는 옛길 걷기 참가자 모집 행사에 참가확정 되었습니다.\n마이페이지 URL : https://www.tappass.co.kr/mypage_login.do";
-				System.out.println(msg);
-				System.out.println(mobile);
-				model.addAttribute("msg", msg);
-				model.addAttribute("mobile", mobile);
-				model.addAttribute("retType", ":none");
-				model.addAttribute("retUrl", "/");
-				return "pict/main/message_sms";
-				
-			}
-			else {
-				System.out.println("여기가 안되는데");
-				model.addAttribute("message", "인증번호가 올바르지 않습니다.");
-				model.addAttribute("retType", ":location");
-				model.addAttribute("retUrl", "/");
-				return "pict/main/message_alert";
-				
-				
-			}
-		}
-		catch(Exception e) {
-			System.out.println(e.getMessage());
-			e.printStackTrace();
-			model.addAttribute("message", "인증번호가 올바르지 않습니다.");
-			model.addAttribute("retType", ":location");
-			model.addAttribute("retUrl", "/");
-			return "pict/main/message_alert";
-		}
-		
-		
-	}
-	//버스입장 QR체크 페이지
-	@RequestMapping(value = "/admin/intro_bus.do")
-	public String intro_bus(@ModelAttribute("searchVO") PictVO pictVO, HttpServletRequest request, ModelMap model, HttpSession session, RedirectAttributes rttr) throws Exception {
-		
-		
-		return "pict/admin/tappass";
-	}
-	@RequestMapping(value = "/qr_insert.do", method= RequestMethod.POST)
-	@ResponseBody
-	public HashMap<String, Object> user_invest_save(@ModelAttribute("searchVO") PictVO pictVO, ModelMap model, HttpServletRequest request, @RequestBody Map<String, Object> param) throws Exception {
-		HashMap<String, Object> map = new HashMap<String, Object>();	
-		String idx = param.get("idx").toString();
-		pictVO.setIdx(Integer.parseInt(idx));
-		
-		pictVO = pictService.get_person_info_fairpass(pictVO);
-		
-		//이러면 이미 좌석정보 들어온 경우
-		if(pictVO != null && pictVO.getBus() != null && pictVO.getSeat() != null && !pictVO.getBus().equals("") && !pictVO.getSeat().equals("")) {
-			pictVO.setIdx(Integer.parseInt(idx));
-			pictVO = pictService.get_person_info_fairpass(pictVO);
-			
-			map.put("text", "already");
-			map.put("rst", pictVO);
-			return map;
-		}
 		else {
-			pictVO = pictService.get_seat_info(pictVO);
-			String busString = pictVO.getBus();
-			int bus;
-			if (busString == null || busString.trim().isEmpty()) {
-			    // 공란인 경우 기본값 설정 (예: 0)
-			    bus = 0; 
-			} else {
-				bus = Integer.parseInt(busString);
-			}
-			
-			String busString2 = pictVO.getSeat();
-			int seat;
-			if (busString2 == null || busString2.trim().isEmpty()) {
-			    // 공란인 경우 기본값 설정 (예: 0)
-				seat = 0; 
-			} else {
-				seat = Integer.parseInt(busString2);
-			}
-			
-			int target_bus = 0;
-			int target_seat = 0;
-			
-			if(bus == 0) {
-				bus = 1;
-			}
-			
-			if(seat == 45) {
-				target_bus = bus + 1;
-				target_seat = 1;
-			}
-			else {
-				target_bus = bus;
-				target_seat = seat + 1;
-			}
-			
-			
-			pictVO.setIdx(Integer.parseInt(idx));
-			pictVO.setBus(target_bus+"");
-			pictVO.setSeat(target_seat+"");
-			pictService.update_user_bus_info(pictVO);
-			
-			pictVO.setIdx(Integer.parseInt(idx));
-			pictVO = pictService.get_person_info_fairpass(pictVO);
-			
-			map.put("text", "success");
-			map.put("rst", pictVO);
-			return map;
-		}
-		
-	}
-	
-	//문자발송
-	@RequestMapping(value = "/sms_number.do", method= RequestMethod.POST)
-	public String sms_number(@ModelAttribute("searchVO") PictVO pictVO, ModelMap model, HttpServletRequest request, @RequestBody Map<String, Object> param) throws Exception {
-		
-		try {
-			Random random = new Random();
-	        int verify_num = 100000 + random.nextInt(900000);
-			
-			String name = param.get("name").toString();
-			pictVO.setName(name);
-			
-			String mobile = param.get("mobile").toString();
-			pictVO.setMobile(mobile);
-			
-			String gender = param.get("gender").toString();
-			String sex = "";
-			if(gender.equals("1") || gender.equals("3")) sex = "1";
-			if(gender.equals("2") || gender.equals("4")) sex = "2";
-		
-			String birth = param.get("birth").toString();
-			pictVO.setBirthday(birth);
-			
-			pictVO = pictService.sms_select(pictVO);
-			System.out.println("널이 탔잖아 근데 왜 ");
-			if(pictVO != null) {
-				System.out.println("이미등롞ㄲㄲㄲㄲㄲㄲㄲㄲㄲ");
-				model.addAttribute("message", "이미 등록된 회원입니다.");
-				model.addAttribute("retType", ":location");
-				model.addAttribute("retUrl", "/");
-				return "pict/main/message_alert";
-			}
-			else {
-				URL url = new URL("https://api.fairpass.co.kr/fsApi/VisitorInsert");
-				HttpURLConnection conn = (HttpURLConnection)url.openConnection();
-				
-				conn.setRequestMethod("POST"); // http 메서드
-				conn.setRequestProperty("Content-Type", "application/json"); // header Content-Type 정보
-				conn.setRequestProperty("ApiKey", " rioE2lpgWGInf2Gd7XF9cOCDvqXGUzKXYPrqBCW"); // header의 auth 정보
-				
-				conn.setDoInput(true); // 서버에 전달할 값이 있다면 true
-				conn.setDoOutput(true);// 서버에서 받을 값이 있다면 true
-				
-				JSONObject obj_param = new JSONObject();
-				obj_param.put("EVENT_IDX", "2417");	//행사코드 고정
-
-				
-				obj_param.put("NAME", name);
-				obj_param.put("TEL", mobile);
-				obj_param.put("GENDER", sex);
-				obj_param.put("INFO10", birth);
-				obj_param.put("OPTION_IDX", "5019");
-				
-				//서버에 데이터 전달
-				BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream()));
-				bw.write(obj_param.toString()); // 버퍼에 담기
-				bw.flush(); // 버퍼에 담긴 데이터 전달
-				bw.close();
-				
-				// 서버로부터 데이터 읽어오기
-				BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-				StringBuilder sb = new StringBuilder();
-				String line = null;
-				
-				while((line = br.readLine()) != null) { // 읽을 수 있을 때 까지 반복
-					sb.append(line);
-				}
-				JSONObject obj = new JSONObject(sb.toString()); // json으로 변경 (역직렬화)
-				int state_code = obj.getInt("resultCode");
-				if(state_code != 0) {
-					model.addAttribute("message", "인증에 오류가 발생하였습니다.");
-					model.addAttribute("retType", ":location");
-					model.addAttribute("retUrl", "/");
-					return "pict/main/message_alert";
-				}
-				else {
-					if(pictVO == null) {
-						pictVO = new PictVO();
-					}
-					pictVO.setFairpath_id(obj.getInt("VISITOR_IDX")+"");
-					pictVO.setName(name);
-					pictVO.setMobile(mobile);
-					pictVO.setBirthday(birth);
-					pictVO.setBirthday_1(sex);
-					pictVO.setSms_rand(verify_num+"");
-					pictService.user_insert(pictVO);
-					
-					String msg = "귀하의 인증번호는 " + verify_num + " 입니다.\n인증번호를 입력하시고 참가등록을 진행해주세요.";
-					model.addAttribute("msg", msg);
-					model.addAttribute("mobile", mobile);
-					model.addAttribute("retType", ":none");
-					model.addAttribute("retUrl", "/");
-					return "pict/main/message_sms";
-					
-				}
-			}
-		}
-		catch(Exception e) {
-			System.out.println("오류ㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠ");
-			System.out.println(e.getMessage());
-			e.printStackTrace();
-			model.addAttribute("message", "오류가 발생하였습니다.");
+			pictService.project_insert(pictVO);
+			model.addAttribute("message", "정상적으로 저장되었습니다.");
 			model.addAttribute("retType", ":location");
-			model.addAttribute("retUrl", "/");
-			return "pict/main/message_alert";
+			model.addAttribute("retUrl", "/admin/project_list.do");
+			return "pict/main/message";
+			
 		}
 	}
-	
-	
-	
+	@RequestMapping(value = "/admin/project_delete.do")
+	public String project_delete(@ModelAttribute("searchVO") PictVO pictVO, ModelMap model, HttpServletRequest request) throws Exception {
+		
+		pictService.project_delete(pictVO);
+		model.addAttribute("message", "정상적으로 삭제되었습니다.");
+		model.addAttribute("retType", ":location");
+		model.addAttribute("retUrl", "/admin/project_list.do");
+		return "pict/main/message";
+	}
+
 	//메소드
 	public static String encryptPassword(String password, String id) throws Exception {
 		if (password == null) return "";
@@ -785,5 +519,40 @@ public class pictController {
 		return new String(Base64.encodeBase64(hashValue));
     }
 
-    
+	public String fileUpload(MultipartHttpServletRequest request, MultipartFile uploadFile, String target) {
+    	String path = "";
+    	String path2 = "";
+    	String fileName = "";
+    	OutputStream out = null;
+    	PrintWriter printWriter = null;
+    	long fileSize = uploadFile.getSize();
+    	try {
+    		fileName = uploadFile.getOriginalFilename();
+    		byte[] bytes = uploadFile.getBytes();
+    		
+			path = getSaveLocation(request, uploadFile);
+    		
+    		
+    		File file = new File(path);
+    		if(fileName != null && !fileName.equals("")) {
+    			if(file.exists()) {
+    				file = new File(path + fileName);
+    			}
+    		}
+    		out = new FileOutputStream(file);
+    		out.write(bytes);
+    		
+    		
+    	}
+    	catch(Exception e) {
+    		e.printStackTrace();
+    	}
+    	
+    	return path + "#####" + fileName;
+    }
+	
+	private String getSaveLocation(MultipartHttpServletRequest request, MultipartFile uploadFile) {
+    	String uploadPath = "/_nas/user1/cmsadmin2/upload_file/design/";
+    	return uploadPath;
+    }
 }

@@ -123,5 +123,13 @@ public interface PictService {
 
 	PictVO project_list_one(PictVO pictVO) throws Exception;
 
+	void project_update(PictVO pictVO) throws Exception;
+
+	void project_insert(PictVO pictVO) throws Exception;
+
+	void project_delete(PictVO pictVO) throws Exception;
+
+	Integer project_list_cnt(PictVO pictVO) throws Exception;
+
 
 }

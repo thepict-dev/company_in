@@ -127,9 +127,127 @@ public class PictVO extends PictDefaultVO {
 	private String img_url3;
 	private String img_url4;
 	private String img_url5;
+	private String img_url6;
+	private String img_url7;
+	private String img_url8;
+	private String img_url9;
+	private String img_url10;
+	private String img_url11;
+	private String img_url12;
+	private String img_url13;
+	private String img_url14;
+	private String img_url15;
+	private int pageNumber;
+	private int startNumber;
+	private int totalPage;
+	private int lastPage;
+	private int startPage;
+	private int endPage;
+	private int limit;
 	
 	
-	
+	public int getEndPage() {
+		return endPage;
+	}
+	public void setEndPage(int endPage) {
+		this.endPage = endPage;
+	}
+	public int getLimit() {
+		return limit;
+	}
+	public void setLimit(int limit) {
+		this.limit = limit;
+	}
+	public int getPageNumber() {
+		return pageNumber;
+	}
+	public void setPageNumber(int pageNumber) {
+		this.pageNumber = pageNumber;
+	}
+	public int getStartNumber() {
+		return startNumber;
+	}
+	public void setStartNumber(int startNumber) {
+		this.startNumber = startNumber;
+	}
+	public int getTotalPage() {
+		return totalPage;
+	}
+	public void setTotalPage(int totalPage) {
+		this.totalPage = totalPage;
+	}
+	public int getLastPage() {
+		return lastPage;
+	}
+	public void setLastPage(int lastPage) {
+		this.lastPage = lastPage;
+	}
+	public int getStartPage() {
+		return startPage;
+	}
+	public void setStartPage(int startPage) {
+		this.startPage = startPage;
+	}
+	public String getImg_url6() {
+		return img_url6;
+	}
+	public void setImg_url6(String img_url6) {
+		this.img_url6 = img_url6;
+	}
+	public String getImg_url7() {
+		return img_url7;
+	}
+	public void setImg_url7(String img_url7) {
+		this.img_url7 = img_url7;
+	}
+	public String getImg_url8() {
+		return img_url8;
+	}
+	public void setImg_url8(String img_url8) {
+		this.img_url8 = img_url8;
+	}
+	public String getImg_url9() {
+		return img_url9;
+	}
+	public void setImg_url9(String img_url9) {
+		this.img_url9 = img_url9;
+	}
+	public String getImg_url10() {
+		return img_url10;
+	}
+	public void setImg_url10(String img_url10) {
+		this.img_url10 = img_url10;
+	}
+	public String getImg_url11() {
+		return img_url11;
+	}
+	public void setImg_url11(String img_url11) {
+		this.img_url11 = img_url11;
+	}
+	public String getImg_url12() {
+		return img_url12;
+	}
+	public void setImg_url12(String img_url12) {
+		this.img_url12 = img_url12;
+	}
+	public String getImg_url13() {
+		return img_url13;
+	}
+	public void setImg_url13(String img_url13) {
+		this.img_url13 = img_url13;
+	}
+	public String getImg_url14() {
+		return img_url14;
+	}
+	public void setImg_url14(String img_url14) {
+		this.img_url14 = img_url14;
+	}
+	public String getImg_url15() {
+		return img_url15;
+	}
+	public void setImg_url15(String img_url15) {
+		this.img_url15 = img_url15;
+	}
 	public String getArea() {
 		return area;
 	}

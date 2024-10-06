@@ -26,8 +26,38 @@
 	            	<li><img src="${pictVO.img_url4}" alt=""></li>
             	</c:if>
             	<c:if test="${pictVO.img_url5 ne null && pictVO.img_url5 ne undefined && pictVO.img_url5 ne ''}">
-	            	<li><img src="${pictVO.img_url5}" alt=""></li>
-            	</c:if>
+				    <li><img src="${pictVO.img_url5}" alt=""></li>
+				</c:if>
+				<c:if test="${pictVO.img_url6 ne null && pictVO.img_url6 ne undefined && pictVO.img_url6 ne ''}">
+				    <li><img src="${pictVO.img_url6}" alt=""></li>
+				</c:if>
+				<c:if test="${pictVO.img_url7 ne null && pictVO.img_url7 ne undefined && pictVO.img_url7 ne ''}">
+				    <li><img src="${pictVO.img_url7}" alt=""></li>
+				</c:if>
+				<c:if test="${pictVO.img_url8 ne null && pictVO.img_url8 ne undefined && pictVO.img_url8 ne ''}">
+				    <li><img src="${pictVO.img_url8}" alt=""></li>
+				</c:if>
+				<c:if test="${pictVO.img_url9 ne null && pictVO.img_url9 ne undefined && pictVO.img_url9 ne ''}">
+				    <li><img src="${pictVO.img_url9}" alt=""></li>
+				</c:if>
+				<c:if test="${pictVO.img_url10 ne null && pictVO.img_url10 ne undefined && pictVO.img_url10 ne ''}">
+				    <li><img src="${pictVO.img_url10}" alt=""></li>
+				</c:if>
+				<c:if test="${pictVO.img_url11 ne null && pictVO.img_url11 ne undefined && pictVO.img_url11 ne ''}">
+				    <li><img src="${pictVO.img_url11}" alt=""></li>
+				</c:if>
+				<c:if test="${pictVO.img_url12 ne null && pictVO.img_url12 ne undefined && pictVO.img_url12 ne ''}">
+				    <li><img src="${pictVO.img_url12}" alt=""></li>
+				</c:if>
+				<c:if test="${pictVO.img_url13 ne null && pictVO.img_url13 ne undefined && pictVO.img_url13 ne ''}">
+				    <li><img src="${pictVO.img_url13}" alt=""></li>
+				</c:if>
+				<c:if test="${pictVO.img_url14 ne null && pictVO.img_url14 ne undefined && pictVO.img_url14 ne ''}">
+				    <li><img src="${pictVO.img_url14}" alt=""></li>
+				</c:if>
+				<c:if test="${pictVO.img_url15 ne null && pictVO.img_url15 ne undefined && pictVO.img_url15 ne ''}">
+				    <li><img src="${pictVO.img_url15}" alt=""></li>
+				</c:if>
 	        </ul>
 	        <div class="textsContainer">
 	            <div class="textsTitles">
